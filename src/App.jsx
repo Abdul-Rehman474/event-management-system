@@ -1,10 +1,21 @@
-function app() {
+import { Routes, Route } from 'react-router-dom'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Events from './pages/Events'
+import MyEvents from './pages/MyEvents'
+import NotFound from './pages/NotFound'
+import EventDetails from './pages/EventDetails'
+
+function App() {
   return (
-    <div className="min-h-screen bg-gray-200 flex items-center justify-center">
-      <h1 className="text-3xl font-bold text-blue-600">
-        Event Management System
-      </h1>
-    </div>
+    <Routes>
+      <Route path='/' element={<Events />} />
+      <Route path='/events/:id' element={<EventDetails />} />
+      <Route path='/login' element={<Login />} />
+      <Route path='/register' element={<Register />} />
+      <Route path='/my-events' element={<MyEvents />} />
+      <Route path='*' element={<NotFound />} />
+    </Routes>
   );
 }
-export default app
+export default App
