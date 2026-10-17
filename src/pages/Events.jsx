@@ -1,29 +1,44 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEvents } from '../features/events/eventsSlice';
+import { fetchEvents, resetFilters } from '../features/events/eventsSlice';
 import EventCard from '../components/EventCard';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
+import FilterBar from '../components/FilterBar';
 
 function Events() {
     const dispatch = useDispatch();
-    const { list, status, error } = useSelector((state) => state.events);
+    const { list, status, error, filters } = useSelector((state) => state.events);
 
-    // Load events once when the page first opens
+    // Re-fetch whenever anY filter changes
     useEffect(() => {
-        dispatch(fetchEvents());
-    }, [dispatch]);
+        dispatch(fetchEvents(filters));
+    }, [dispatch, filters]);
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">Upcoming Events</h1>
+            <h1 className="text-3xl font-bold mb-6">
+                {filters.category || 'Upcoming'} Events
+            </h1>
+
+            <div className="space-y-4 mb-8">
+                <FilterBar />
+            </div>
 
             {status === 'loading' && <Loader />}
 
             {status === 'failed' && <ErrorMessage message={error} />}
 
             {status === 'succeeded' && list.length === 0 && (
-                <p className="text-center text-gray-500 py-12">No events found.</p>
+                <div className="text-center py-12">
+                    <p className="text-gray-500 mb-4">No events match your search.</p>
+                    <button
+                        onClick={() => dispatch(resetFilters())}
+                        className="text-blue-600 hover:underline"
+                    >
+                        Clear all filters
+                    </button>
+                </div>
             )}
 
             {status === 'succeeded' && list.length > 0 && (
