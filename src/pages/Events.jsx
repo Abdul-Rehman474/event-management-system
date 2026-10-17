@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchEvents, resetFilters } from '../features/events/eventsSlice';
+import { fetchEvents, resetFilters, setFilters } from '../features/events/eventsSlice';
+import Pagination from '../components/Pagination';
 import EventCard from '../components/EventCard';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
@@ -9,12 +10,19 @@ import CategoryFilter from '../components/CategoryFilter';
 
 function Events() {
     const dispatch = useDispatch();
-    const { list, status, error, filters } = useSelector((state) => state.events);
+    const { list, status, error, filters, totalPages } = useSelector((state) => state.events);
 
     // Re-fetch whenever anY filter changes
     useEffect(() => {
         dispatch(fetchEvents(filters));
     }, [dispatch, filters]);
+
+    const maxPages = Math.min(totalPages, 50);
+
+    const handlePageChange = (newPage) => {
+        dispatch(setFilters({ page: newPage }));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -44,11 +52,18 @@ function Events() {
             )}
 
             {status === 'succeeded' && list.length > 0 && (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {list.map((event) => (
-                        <EventCard key={event.id} event={event} />
-                    ))}
-                </div>
+                <>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {list.map((event) => (
+                            <EventCard key={event.id} event={event} />
+                        ))}
+                    </div>
+                    <Pagination
+                        page={filters.page}
+                        totalPages={maxPages}
+                        onPageChange={handlePageChange}
+                    />
+                </>
             )}
         </div>
     );
