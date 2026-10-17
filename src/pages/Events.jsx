@@ -5,6 +5,7 @@ import EventCard from '../components/EventCard';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
 import FilterBar from '../components/FilterBar';
+import CategoryFilter from '../components/CategoryFilter';
 
 function Events() {
     const dispatch = useDispatch();
@@ -23,6 +24,7 @@ function Events() {
 
             <div className="space-y-4 mb-8">
                 <FilterBar />
+                <CategoryFilter />
             </div>
 
             {status === 'loading' && <Loader />}
