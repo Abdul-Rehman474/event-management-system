@@ -19,12 +19,27 @@ const initialState = {
     error: null,
     page: 0,
     totalPages: 0,
+    filters: {
+        keyword: '',
+        category: '',
+        city: '',
+        startDate: '',
+        page: 0,
+    },
 };
 
 const eventsSlice = createSlice({
     name: 'events',
     initialState,
-    reducers: {},
+    reducers: {
+        setFilters: (state, action) => {
+            // any filter change goes back to page 0, unless a page is given
+            state.filters = { ...state.filters, page: 0, ...action.payload };
+        },
+        resetFilters: (state) => {
+            state.filters = initialState.filters;
+        },
+    },
     extraReducers: (builder) => {
         builder
             .addCase(fetchEvents.pending, (state) => {
@@ -44,4 +59,5 @@ const eventsSlice = createSlice({
     },
 });
 
+export const { setFilters, resetFilters } = eventsSlice.actions;
 export default eventsSlice.reducer;
