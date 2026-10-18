@@ -31,11 +31,13 @@ export function formatEvent(e) {
         priceRange: price
             ? { min: price.min, max: price.max, currency: price.currency }
             : null,
+        seatmap: e.seatmap?.staticUrl || '',
+        promoter: e.promoter?.name || '',
         info: e.info || e.pleaseNote || '',
     };
 }
 
-// Ticketmaster wants dates like 2026-10-17T10:00:00Z (no milliseconds)
+//  dates like 2026-10-17 
 function toApiDate(date) {
     return date.toISOString().split('.')[0] + 'Z';
 }
@@ -69,9 +71,25 @@ export async function searchEvents({
 
     const data = await response.json();
 
+    let events = (data._embedded?.events || []).map(formatEvent);
+
+    if (startDate) events = events.filter((e) => !e.date || e.date >= startDate);
+
     return {
-        events: (data._embedded?.events || []).map(formatEvent),
+        events,
         totalPages: data.page?.totalPages || 0,
         page: data.page?.number || 0,
     };
+}
+//get 1 event by its id
+export async function getEventById(id) {
+    let response;
+    try {
+        response = await fetch(`${BASE_URL}/events/${id}.json?apikey=${API_KEY}`);
+    } catch {
+        throw new Error('Event not found or could not be loaded');
+    }
+    if (response.status === 404) throw new Error('Event not found');
+    if (!response.ok) throw new Error(`Could not load event (error ${response.status})`);
+    return formatEvent(await response.json());
 }
