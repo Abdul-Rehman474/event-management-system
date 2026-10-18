@@ -83,7 +83,12 @@ export async function searchEvents({
 }
 //get 1 event by its id
 export async function getEventById(id) {
-    const response = await fetch(`${BASE_URL}/events/${id}.json?apikey=${API_KEY}`);
+    let response;
+    try {
+        response = await fetch(`${BASE_URL}/events/${id}.json?apikey=${API_KEY}`);
+    } catch {
+        throw new Error('Event not found or could not be loaded');
+    }
     if (response.status === 404) throw new Error('Event not found');
     if (!response.ok) throw new Error(`Could not load event (error ${response.status})`);
     return formatEvent(await response.json());
