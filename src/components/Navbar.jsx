@@ -8,9 +8,7 @@ function Navbar() {
     const navigate = useNavigate();
 
     const linkClass = ({ isActive }) =>
-        isActive
-            ? 'text-blue-600 font-semibold'
-            : 'text-gray-600 hover:text-blue-600';
+        isActive ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600';
 
     const handleLogout = () => {
         dispatch(logout());
@@ -18,18 +16,18 @@ function Navbar() {
     };
 
     return (
-        <nav className="bg-white shadow px-6 py-4 flex justify-between items-center">
+        <nav className="bg-white shadow px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-3">
             <Link to="/" className="text-xl font-bold text-blue-600">
                 EventHub
             </Link>
 
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm sm:text-base">
                 <NavLink to="/" end className={linkClass}>Events</NavLink>
 
                 {currentUser ? (
                     <>
                         <NavLink to="/my-events" className={linkClass}>My Events</NavLink>
-                        <span className="text-gray-700">Hi, {currentUser.name}</span>
+                        <span className="hidden sm:inline text-gray-700">Hi, {currentUser.name}</span>
                         <button
                             onClick={handleLogout}
                             className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
