@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { login, clearError } from '../features/auth/authSlice';
 import FormInput from '../components/FormInput';
 
@@ -12,17 +12,19 @@ function Login() {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
+    const from = location.state?.from || '/';
     const { currentUser, error } = useSelector((state) => state.auth);
 
-    // clears old error msgs when the user starts typing agai
+    // clear old error messages when the page first opens
     useEffect(() => {
         dispatch(clearError());
     }, [dispatch]);
 
     // if the user is already logged in, redirect to home page
     useEffect(() => {
-        if (currentUser) navigate('/');
-    }, [currentUser, navigate]);
+        if (currentUser) navigate(from, { replace: true });
+    }, [currentUser, navigate, from]);
 
     const handleSubmit = (e) => {
         e.preventDefault();

@@ -17,3 +17,4 @@ export function formatTime(time) {
     d.setHours(hours, minutes);
     return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
+export const today = () => new Date().toLocaleDateString('en-CA');

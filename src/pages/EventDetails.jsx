@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEventById } from '../features/events/eventsSlice';
-import { formatDate, formatTime } from '../utils/format';
+import { registerForEvent, cancelRegistration } from '../features/registrations/registrationsSlice';
+import { formatDate, formatTime, today } from '../utils/format';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
 
@@ -18,16 +19,24 @@ function Detail({ label, children }) {
 function EventDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation(); // ⬅
     const dispatch = useDispatch();
     const { selected: event, selectedStatus, selectedError } = useSelector(
         (state) => state.events
     );
 
+    const currentUser = useSelector((state) => state.auth.currentUser);
+    const isRegistered = useSelector((state) =>
+        state.registrations.items.some(
+            (r) => r.userEmail === currentUser?.email && r.event.id === id
+        )
+    );
+    const [message, setMessage] = useState('');
+
     useEffect(() => {
         dispatch(fetchEventById(id));
     }, [dispatch, id]);
 
-    // Early returns: handle loading / error first
     if (selectedStatus === 'loading' || selectedStatus === 'idle') return <Loader />;
     if (selectedStatus === 'failed') return <ErrorMessage message={selectedError} />;
     if (!event) return null;
@@ -35,6 +44,26 @@ function EventDetails() {
     const price = event.priceRange
         ? `${event.priceRange.min} – ${event.priceRange.max} ${event.priceRange.currency}`
         : 'See Ticketmaster for prices';
+
+    //Registration rules
+    const isPast = event.date && event.date < today();
+    const isCancelled = event.status === 'cancelled';
+
+    const handleRegister = () => {
+        if (!currentUser) {
+            // Not logged in → go to login, then come back here
+            navigate('/login', { state: { from: location.pathname } });
+            return;
+        }
+        dispatch(registerForEvent({ userEmail: currentUser.email, event }));
+        setMessage('🎉 You are registered for this event!');
+    };
+
+    const handleCancel = () => {
+        if (!window.confirm('Cancel your registration for this event?')) return;
+        dispatch(cancelRegistration({ userEmail: currentUser.email, eventId: event.id }));
+        setMessage('Your registration has been cancelled.');
+    };
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-8">
@@ -51,7 +80,6 @@ function EventDetails() {
             )}
 
             <div className="grid gap-6 md:grid-cols-3 mt-6">
-                {/* LEFT: main info */}
                 <div className="md:col-span-2 space-y-4">
                     <div className="flex flex-wrap gap-2">
                         <span className="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-1 rounded">
@@ -86,7 +114,6 @@ function EventDetails() {
                     )}
                 </div>
 
-                {/* RIGHT: details */}
                 <div className="bg-white p-5 rounded-xl shadow space-y-4 h-fit">
                     <Detail label="Date">{formatDate(event.date)}</Detail>
                     {event.time && <Detail label="Time">{formatTime(event.time)}</Detail>}
@@ -98,6 +125,34 @@ function EventDetails() {
                     {event.promoter && <Detail label="Promoter">{event.promoter}</Detail>}
 
 
+                    {message && (
+                        <p className="bg-green-100 text-green-800 text-sm px-3 py-2 rounded">{message}</p>
+                    )}
+
+                    {isRegistered ? (
+                        <div className="space-y-2">
+                            <p className="text-center text-green-700 font-semibold">✓ You're registered</p>
+                            {!isPast && (
+                                <button
+                                    onClick={handleCancel}
+                                    className="w-full border border-red-500 text-red-600 py-2 rounded-lg hover:bg-red-50"
+                                >
+                                    Cancel registration
+                                </button>
+                            )}
+                        </div>
+                    ) : isPast || isCancelled ? (
+                        <p className="text-center text-gray-500 text-sm">
+                            Registration is closed for this event.
+                        </p>
+                    ) : (
+                        <button
+                            onClick={handleRegister}
+                            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+                        >
+                            {currentUser ? 'Register for this event' : 'Log in to register'}
+                        </button>
+                    )}
 
                     <a
                         href={event.url}
