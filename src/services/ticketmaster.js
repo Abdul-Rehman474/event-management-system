@@ -35,7 +35,7 @@ export function formatEvent(e) {
     };
 }
 
-// Ticketmaster wants dates like 2026-10-17T10:00:00Z (no milliseconds)
+//  dates like 2026-10-17 
 function toApiDate(date) {
     return date.toISOString().split('.')[0] + 'Z';
 }
@@ -69,8 +69,12 @@ export async function searchEvents({
 
     const data = await response.json();
 
+    let events = (data._embedded?.events || []).map(formatEvent);
+
+    if (startDate) events = events.filter((e) => !e.date || e.date >= startDate);
+
     return {
-        events: (data._embedded?.events || []).map(formatEvent),
+        events,
         totalPages: data.page?.totalPages || 0,
         page: data.page?.number || 0,
     };
